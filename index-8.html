@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Location Tracker</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0F1115; color: #E8E9EC;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .wrap { width: 100%; max-width: 380px; }
+  h1 { font-size: 20px; font-weight: 600; text-align: center; margin: 0 0 6px; }
+  .sub { font-size: 13px; color: #8A8F98; text-align: center; margin: 0 0 28px; }
+  a.card {
+    display: block; text-decoration: none; color: inherit;
+    background: #171A21; border: 1px solid #262A33; border-radius: 14px;
+    padding: 20px; margin-bottom: 14px;
+  }
+  a.card .title { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  a.card .desc { font-size: 13px; color: #8A8F98; }
+  a.child { border-color: #2E6BFF; }
+  a.parent { border-color: #35D07F; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Family location tracker</h1>
+  <p class="sub">Aap kaun hain, wahan tap karein</p>
+
+  <a class="card child" href="child.html">
+    <div class="title">Bacche ka phone</div>
+    <div class="desc">Yahan se location share karein</div>
+  </a>
+
+  <a class="card parent" href="parent.html">
+    <div class="title">Parent / Admin</div>
+    <div class="desc">Yahan se bacche ki location dekhein</div>
+  </a>
+</div>
+</body>
+</html>
