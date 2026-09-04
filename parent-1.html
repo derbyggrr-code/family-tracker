@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Location — Parent</title>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0F1115; color: #E8E9EC;
+  }
+  header { padding: 20px; }
+  h1 { font-size: 19px; margin: 0 0 4px; font-weight: 600; }
+  .sub { font-size: 13px; color: #8A8F98; margin: 0; }
+  .setup { padding: 0 20px 16px; }
+  input[type="text"] {
+    width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #262A33;
+    background: #171A21; color: #E8E9EC; font-size: 15px; margin-bottom: 10px;
+  }
+  button.primary {
+    width: 100%; padding: 12px; border-radius: 10px; border: none;
+    background: #2E6BFF; color: white; font-size: 15px; font-weight: 500; cursor: pointer;
+  }
+  #map { height: 340px; margin: 0 20px 16px; border-radius: 14px; border: 1px solid #262A33; }
+  .info-card {
+    margin: 0 20px 20px; background: #171A21; border: 1px solid #262A33;
+    border-radius: 14px; padding: 16px 18px;
+  }
+  .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .name { font-size: 15px; font-weight: 500; }
+  .live-badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: rgba(53,208,127,0.15); color: #35D07F; }
+  .stale-badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: rgba(240,133,133,0.15); color: #F08585; }
+  .meta { font-size: 12px; color: #6D7280; }
+  .hidden { display: none; }
+  .empty { text-align: center; color: #6D7280; font-size: 13px; padding: 30px 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Family location — parent view</h1>
+  <p class="sub">Bacche ki live location yahan dikhegi</p>
+</header>
+
+<div class="setup" id="setup">
+  <input type="text" id="familyCode" placeholder="Family code daalein (jaise: sharma-2026)" />
+  <button class="primary" onclick="connect()">Connect karo</button>
+</div>
+
+<div id="mapArea" class="hidden">
+  <div id="map"></div>
+  <div class="info-card" id="infoCard">
+    <div class="empty">Location ka wait ho raha hai...</div>
+  </div>
+</div>
+
+<script>
+// ====== YAHAN APNA FIREBASE CONFIG PASTE KAREIN (child.html jaisa hi) ======
+const firebaseConfig = {
+  apiKey: "AIzaSyBjocSo-_LRY7-HPhjU9zP5J4CmDpxF9Gs",
+  databaseURL: "https://family-tracker-bdd9a-default-rtdb.firebaseio.com",
+  projectId: "family-tracker-bdd9a"
+};
+// ============================================================================
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+let map = null;
+let marker = null;
+
+function connect() {
+  const code = document.getElementById('familyCode').value.trim();
+  if (!code) return;
+  localStorage.setItem('familyCode', code);
+
+  document.getElementById('setup').classList.add('hidden');
+  document.getElementById('mapArea').classList.remove('hidden');
+
+  if (!map) {
+    map = L.map('map').setView([20.5937, 78.9629], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+  }
+
+  db.ref('families/' + code + '/child').on('value', (snapshot) => {
+    const data = snapshot.val();
+    const infoCard = document.getElementById('infoCard');
+    if (!data) {
+      infoCard.innerHTML = '<div class="empty">Abhi tak koi location nahi mili</div>';
+      return;
+    }
+
+    if (marker) {
+      marker.setLatLng([data.lat, data.lng]);
+    } else {
+      marker = L.marker([data.lat, data.lng]).addTo(map).bindPopup(data.name);
+    }
+    map.setView([data.lat, data.lng], 15);
+
+    const secondsAgo = Math.floor((Date.now() - data.updatedAt) / 1000);
+    const isLive = secondsAgo < 30;
+    const badge = isLive
+      ? '<span class="live-badge">live</span>'
+      : '<span class="stale-badge">' + Math.floor(secondsAgo / 60) + ' min pehle</span>';
+
+    infoCard.innerHTML =
+      '<div class="row"><span class="name">' + data.name + '</span>' + badge + '</div>' +
+      '<div class="meta">' + data.lat.toFixed(5) + ', ' + data.lng.toFixed(5) + '</div>';
+  });
+}
+
+window.onload = () => {
+  const savedCode = localStorage.getItem('familyCode');
+  if (savedCode) {
+    document.getElementById('familyCode').value = savedCode;
+  }
+};
+</script>
+
+</body>
+</html>
